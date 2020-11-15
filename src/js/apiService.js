@@ -9,7 +9,14 @@ export default class GaleryApiService {
   }
 
   async fetchFotos() {
-    const url = `${BASE_URL}&q=${this.serchQuery}&page=${this.page}&per_page=12&key=${API_KEY}`;
+    const searchParams = new URLSearchParams({
+      q: this.searchQuery,
+      page: this.page,
+      per_page: 12,
+      key: API_KEY,
+    });
+    const url = `${BASE_URL}${searchParams}`;
+    // const url = `${BASE_URL}&q=${this.serchQuery}&page=${this.page}&per_page=12&key=${API_KEY}`;
     const response = await fetch(url);
     const newImages = await response.json();
 

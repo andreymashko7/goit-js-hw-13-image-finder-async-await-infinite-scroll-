@@ -7,7 +7,6 @@ function Error() {
     text: 'Error no results found',
     delay: 1500,
   });
-  loadMoreBtn.hide();
 }
 
 function emptyInput() {

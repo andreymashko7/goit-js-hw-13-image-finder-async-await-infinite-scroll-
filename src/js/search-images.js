@@ -1,20 +1,14 @@
 import GaleryApiService from './apiService';
 import imageTpl from '../templates/img-card.hbs';
 import getRefs from './get-refs';
-import LoadMoreBtn from './load-more-btn';
 import { onOpenModal } from './modal.js';
 import { emptyInput, Error } from './notify.js';
 
 const refs = getRefs();
-let currentPosition = 0;
+// let currentPosition = 0;
 const galeryApiService = new GaleryApiService();
-const loadMoreBtn = new LoadMoreBtn({
-  selector: '[data-action="load-more"]',
-  hidden: true,
-});
 
 refs.searchForm.addEventListener('submit', onSearch);
-loadMoreBtn.refs.button.addEventListener('click', fetchFotos);
 refs.imageContainer.addEventListener('click', onOpenModal);
 
 async function onSearch(e) {
@@ -25,11 +19,9 @@ async function onSearch(e) {
 
     if (galeryApiService.query === '') {
       clearMarkup();
-      loadMoreBtn.hide();
       emptyInput();
       return;
     } else {
-      loadMoreBtn.show();
       galeryApiService.resetPage();
       clearMarkup();
       fetchFotos();
@@ -40,15 +32,11 @@ async function onSearch(e) {
 }
 
 async function fetchFotos() {
-  loadMoreBtn.show();
-  loadMoreBtn.disable();
-
-  currentPosition = refs.imageContainer.offsetHeight;
+  // currentPosition = refs.imageContainer.offsetHeight;
 
   try {
     const response = await galeryApiService.fetchFotos();
     renderImagesMarcup(response);
-    loadMoreBtn.enable();
   } catch (error) {
     console.log('ошибка');
   }
@@ -56,20 +44,28 @@ async function fetchFotos() {
 
 function renderImagesMarcup(images) {
   refs.imageContainer.insertAdjacentHTML('beforeend', imageTpl(images));
-  scrollingPage();
 }
 
 function clearMarkup() {
   refs.imageContainer.innerHTML = '';
 }
 
-function scrollingPage() {
-  window.scrollTo({
-    top: currentPosition,
-    left: 0,
-    behavior: 'smooth',
+const onEntry = entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting && galeryApiService.query !== '') {
+      galeryApiService.fetchFotos().then(images => {
+        renderImagesMarcup(images);
+      });
+    }
   });
-}
+};
+
+const options = {
+  rootMargin: '200px',
+};
+
+const observer = new IntersectionObserver(onEntry, options);
+observer.observe(refs.sentinel);
 
 // -----------------------------На промисах ---------------------------------------------
 
